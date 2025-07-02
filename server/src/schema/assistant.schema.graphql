@@ -1,0 +1,49 @@
+type Query {
+  searchDocuments(
+    query: String!
+    limit: Int = 10
+    offset: Int = 0
+    sortBy: String
+  ): SearchResult!
+  getGitHubIssue(issueId: ID!): GitHubIssue
+}
+
+type SearchResult {
+  items: [Document!]!
+  total: Int!
+}
+
+type Document {
+  id: ID!
+  title: String!
+  content: String!
+  source: String! # "vue", "node", "typescript"
+  type: String!
+  technology: String!
+  createdAt: String!
+}
+
+type Comment {
+  author: String!
+  content: String!
+}
+
+# Додайте новий тип і запит
+type GitHubIssue {
+  id: ID!
+  title: String!
+  body: String!
+  url: String!
+  state: String!
+  createdAt: String!
+  updatedAt: String!
+  comments: [Comment!]!
+}
+
+extend type Query {
+  searchGitHubIssues(
+    repo: String!
+    query: String!
+    limit: Int = 10
+  ): [GitHubIssue!]!
+}

@@ -1,0 +1,85 @@
+# Base Types
+type Query {
+  searchDocuments(
+    query: String!
+    limit: Int = 10
+    offset: Int = 0
+    sortBy: String
+  ): SearchResult!
+  
+  askAI(question: String!, technology: String!): QAAnswer!
+  
+  searchGitHubIssues(
+    repo: String!
+    query: String!
+    limit: Int = 10
+  ): [GitHubIssue!]!
+}
+
+type Mutation {
+  analyzeImage(
+    imageUrl: String!
+    question: String!
+    technology: String
+  ): ImageAnalysis!
+}
+
+# Document Types
+type Document {
+  id: ID!
+  title: String!
+  content: String!
+  source: String!
+  type: String!
+  technology: String!
+  createdAt: String!
+}
+
+type SearchResult {
+  items: [Document!]!
+  total: Int!
+}
+
+type DocumentSearchResult {
+  items: [Document!]!
+  total: Int!
+}
+
+# AI Response Types
+type QAAnswer {
+  answer: String!
+  sources: [SourceDocument!]!
+  generatedAt: String!
+}
+
+type SourceDocument {
+  content: String!
+  source: String!
+  score: Float!
+}
+
+# Image Analysis Types
+type ImageAnalysis {
+  answer: String!
+  imageDescription: String!
+  generatedAt: String!
+  sources: [SourceDocument!]!
+  extractedText: String
+}
+
+type ImageUploadResponse {
+  success: Boolean!
+  imageUrl: String!
+  filename: String!
+}
+
+# GitHub Types
+type GitHubIssue {
+  id: ID!
+  title: String!
+  body: String!
+  url: String!
+  state: String!
+  createdAt: String!
+  updatedAt: String!
+}
