@@ -12,7 +12,10 @@
     "seed": "ts-node src/seed-data.ts",
     "typeorm": "ts-node ./node_modules/typeorm/cli -d src/data-source.ts",
     "migration:generate": "npm run typeorm migration:generate",
-    "migration:run": "npm run typeorm migration:run"
+    "migration:run": "npm run typeorm migration:run",
+    "demo-ai": "ts-node src/examples/ai-models-demo.ts",
+    "demo-search": "ts-node src/examples/search-strategies-demo.ts",
+    "demo-code": "ts-node src/examples/code-search-demo.ts"
   },
   "keywords": [],
   "author": "",
@@ -21,8 +24,11 @@
   "dependencies": {
     "@apollo/server": "^4.12.1",
     "@chroma-core/default-embed": "^0.1.8",
+    "@langchain/anthropic": "^0.3.23",
     "@langchain/community": "^0.3.47",
     "@langchain/core": "^0.3.61",
+    "@langchain/google-genai": "^0.2.14",
+    "@langchain/groq": "^0.2.3",
     "@langchain/openai": "^0.5.16",
     "@langchain/textsplitters": "^0.1.0",
     "@octokit/rest": "^22.0.0",

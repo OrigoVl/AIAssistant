@@ -23,4 +23,14 @@ export class QAAnswer {
 
   @Field()
   generatedAt: string;
+
+  // Додаємо поля валідації
+  @Field({ nullable: true })
+  warning?: string;
+
+  @Field()
+  isTechnical: boolean;
+
+  @Field(() => [String], { nullable: true })
+  suggestions?: string[];
 }

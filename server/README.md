@@ -1,140 +1,263 @@
-# AI Assistant Server
+# 🤖 AI Assistant - Advanced Multi-Model AI Platform
 
-A GraphQL server built with NestJS-style architecture using Apollo Server, TypeGraphQL, and TypeORM.
+## 🎯 Overview
 
-## ✅ Current Status
+Advanced AI Assistant with support for multiple AI providers, search strategies, and code-specific queries. Features **FREE AI models** for development and testing.
 
-The server is **fully functional** and can run with or without database connectivity:
-- ✅ GraphQL API running at `http://localhost:4000/graphql`
-- ✅ Health check endpoint at `http://localhost:4000/health`
-- ✅ All TypeScript compilation issues resolved
-- ✅ Graceful database error handling
-- ⚠️ Database setup required for document search functionality
+## 🆓 FREE AI Models Supported
 
-## Setup
+### Groq Models (Completely Free)
+- **llama-3.3-70b-versatile** - Best overall reasoning and code capabilities
+- **llama-3.1-8b-instant** - Lightning-fast responses
+- **llama-3.2-11b-vision-preview** - Vision and image analysis
+- **mixtral-8x7b-32768** - Multilingual support
+- **gemma2-9b-it** - General purpose
 
-### Prerequisites
+### Google Gemini Models (Free Tier)
+- **gemini-1.5-flash** - 1M context window, multimodal
+- **gemini-1.0-pro** - General purpose, reliable
 
-- Node.js 18+
-- PostgreSQL 12+ (optional - server runs without it)
+## 🚀 Quick Start
 
-### Installation
-
-1. Install dependencies:
+### 1. Environment Setup
 ```bash
-npm install --legacy-peer-deps
+# Required for any AI provider
+OPENAI_API_KEY=your_openai_api_key_here
+ANTHROPIC_API_KEY=your_anthropic_api_key_here
+
+# For FREE models, add GROQ_API_KEY or GOOGLE_API_KEY
+GROQ_API_KEY=your_groq_api_key_here
+GOOGLE_API_KEY=your_google_api_key_here
+
+# Database
+DATABASE_URL=postgresql://user:password@localhost:5432/ai_assistant
+CHROMA_PATH=./chroma_db
+
+# Optional
+DEFAULT_AI_PROVIDER=groq  # Prefer free models
 ```
 
-2. **Start the server** (works without database):
+### 2. Installation
 ```bash
-npm run start
-# or for development
+npm install
+npm run build
 npm run dev
 ```
 
-The server will start at `http://localhost:4000/graphql` even without database!
-
-### Optional: Database Setup
-
-To enable document search functionality, set up PostgreSQL:
-
-1. **Install PostgreSQL** (if not installed):
+### 3. Test FREE Models
 ```bash
-# macOS with Homebrew
-brew install postgresql
-brew services start postgresql
-
-# Ubuntu/Debian
-sudo apt-get install postgresql postgresql-contrib
+npm run demo-ai
 ```
 
-2. **Create database and user**:
-```sql
-# Connect to PostgreSQL
-psql postgres
+## 🎯 Features
 
-# Create database and user
-CREATE DATABASE ai_assistant;
-CREATE USER postgres WITH PASSWORD 'postgres';
-GRANT ALL PRIVILEGES ON DATABASE ai_assistant TO postgres;
-\q
-```
+### 🤖 Multi-Provider AI Support
+- **OpenAI**: GPT-4, GPT-4o, GPT-4o-mini
+- **Anthropic**: Claude 3.5 Sonnet, Claude 3 Haiku
+- **Groq**: Llama 3.3 70B, Llama 3.1 8B (FREE)
+- **Google**: Gemini 1.5 Pro/Flash (FREE tier)
 
-3. **Restart the server** - it will automatically connect to the database.
+### 🔍 Advanced Search Strategies
+- **Vector Search**: Semantic similarity with ChromaDB
+- **Lexical Search**: Exact keyword matching
+- **BM25 Algorithm**: Information retrieval ranking
+- **Fuzzy Search**: Typo-tolerant matching
+- **Hybrid Search**: Combines multiple strategies
 
-### Environment Variables
+### 🎯 Code-Specific Search
+- Limited to programming technologies: Vue.js, Node.js, TypeScript, GrapesJS
+- Technical query validation with intelligent filtering
+- Non-technical query blocking with helpful suggestions
 
-You can customize database connection by setting these environment variables:
+### 🖼️ Image Analysis
+- Vision-capable models for code screenshots
+- OCR text extraction from images
+- UI/UX analysis and suggestions
 
+## 🔧 Configuration
+
+### Default Free Model Setup
 ```bash
-DB_HOST=localhost
-DB_PORT=5432
-DB_USER=postgres
-DB_PASSWORD=postgres
-DB_NAME=ai_assistant
+# In your .env file
+DEFAULT_AI_PROVIDER=groq
+GROQ_API_KEY=your_groq_api_key_here # * FREE
 ```
 
-## GraphQL Schema
+### Advanced Configuration
+```typescript
+// Custom model configuration
+const customModel = AIModelFactory.createChatModel({
+  provider: AIProvider.GROQ,
+  modelName: "llama-3.3-70b-versatile",
+  temperature: 0.2,
+  maxTokens: 1000,
+});
+```
 
-### Working Queries (no database required):
-- `healthCheck`: Server and database status
-- `getGitHubIssue(issueId: String!)`: Mock GitHub issue data
+## 📊 GraphQL API
 
-### Database-dependent Queries:
-- `searchDocuments(query: String!)`: Search documents (returns empty if no DB)
-
-### Example Queries
-
+### Basic Query
 ```graphql
-# Health check
-{
-  healthCheck
-}
-
-# GitHub issue
-{
-  getGitHubIssue(issueId: "123") {
-    id
-    title
-    state
-    url
-  }
-}
-
-# Document search (requires database)
-{
-  searchDocuments(query: "example") {
-    id
-    title
-    content
+query {
+  askAI(
+    question: "How to create a Vue.js component?"
+    technology: "vue"
+    provider: "groq"
+    modelName: "llama-3.3-70b-versatile"
+  ) {
+    answer
+    sources {
+      source
+      score
+    }
   }
 }
 ```
 
-## Testing
+### Technical Query Validation
+```graphql
+query {
+  validateQuery(query: "how to cook pasta") {
+    isTechnical
+    warning
+    suggestions
+  }
+}
+```
 
-You can test the API using:
+### Model Information
+```graphql
+query {
+  getModelInfo(provider: "groq", modelName: "llama-3.3-70b-versatile") {
+    isFree
+    strengths
+    rateLimit
+    contextWindow
+  }
+}
+```
 
-**GraphQL Playground**: Visit `http://localhost:4000/graphql`
+## 🔍 Search Capabilities
 
-**cURL**:
+### Code Search
+```graphql
+query {
+  searchCode(
+    query: "Vue component lifecycle"
+    technologies: ["vue", "typescript"]
+    limit: 10
+  ) {
+    isTechnical
+    results {
+      document {
+        title
+        content
+        technology
+        source
+      }
+      score
+    }
+  }
+}
+```
+
+### Technology-Specific Search
+```graphql
+query {
+  searchByTechnology(
+    technology: "vue"
+    query: "reactive data binding"
+  ) {
+    results {
+      document {
+        title
+        content
+      }
+      score
+    }
+  }
+}
+```
+
+## 🛠️ Development
+
+### Scripts
 ```bash
-# Health check
-curl http://localhost:4000/health
-
-# GraphQL query
-curl -X POST http://localhost:4000/graphql \
-  -H "Content-Type: application/json" \
-  -d '{"query":"{ healthCheck }"}'
+npm run dev          # Start development server
+npm run build        # Build production version
+npm run demo-ai      # Test AI models
+npm run search-demo  # Test search strategies
 ```
 
-## Project Structure
-
+### Testing
+```bash
+npm run test         # Run all tests
+npm run test:watch   # Watch mode
+npm run test:coverage # Coverage report
 ```
-src/
-├── entities/          # TypeORM entities
-├── resolvers/         # GraphQL resolvers
-├── types/            # GraphQL types
-├── db/               # Database configuration
-└── index.ts          # Server entry point
-``` 
+
+## 🎯 Best Practices
+
+### For FREE Model Usage
+1. **Start with Groq**: No credit card required, excellent performance
+2. **Use appropriate model sizes**: 70B for complex reasoning, 8B for simple tasks
+3. **Monitor rate limits**: 30 requests/minute for Groq
+4. **Cache responses**: Avoid repeated identical queries
+
+### For Production
+1. **Implement retry logic**: Handle rate limits gracefully
+2. **Use model recommendations**: Let the system suggest optimal models
+3. **Monitor costs**: Track usage across providers
+4. **Fallback strategies**: Have backup providers configured
+
+## 🚨 Rate Limits & Costs
+
+| Provider | Model | Requests/min | Cost | Notes |
+|----------|-------|--------------|------|-------|
+| Groq | llama-3.3-70b-versatile | 30 | FREE | Best free option |
+| Groq | llama-3.1-8b-instant | 30 | FREE | Fastest responses |
+| Google | gemini-1.5-flash | 15 | FREE | Large context |
+| OpenAI | gpt-4o | 500 | $0.005/1k | Production ready |
+| Anthropic | claude-3.5-sonnet | 1000 | $0.003/1k | Excellent for writing |
+
+## 🏗️ Architecture
+
+### Core Components
+- **AIModelFactory**: Creates and manages AI model instances
+- **AIConfigService**: Handles provider configuration and preferences
+- **SearchStrategies**: Implements different search algorithms
+- **CodeSearchService**: Validates and processes technical queries
+
+### Database Schema
+- **documents**: Vector embeddings and metadata
+- **searches**: Search history and analytics
+- **models**: AI model configurations and stats
+
+## 🎉 Get Started for FREE
+
+1. **Get Groq API Key**: [console.groq.com](https://console.groq.com) (no credit card)
+2. **Add to .env**: `GROQ_API_KEY=your_key_here`
+3. **Test**: `npm run demo-ai`
+4. **Build**: Start creating your AI application!
+
+## 📚 Documentation
+
+- [AI Models Guide](./AI_MODELS_GUIDE.md) - Complete model documentation
+- [Free Models Setup](./FREE_MODELS_SETUP.md) - Quick setup for free models
+- [Search Approaches](./SEARCH_APPROACHES_COMPARISON.md) - Search strategy comparison
+- [Code Search Guide](./CODE_SEARCH_GUIDE.md) - Technical query documentation
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Add tests for new features
+4. Submit a pull request
+
+## 📄 License
+
+MIT License - feel free to use in your projects!
+
+---
+
+**💡 Build powerful AI applications without spending a penny using our FREE model integrations!** 

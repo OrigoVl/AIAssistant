@@ -1,18 +1,53 @@
-import { ChatOpenAI } from "@langchain/openai";
 import { HumanMessage } from "@langchain/core/messages";
+import { BaseChatModel } from "@langchain/core/language_models/chat_models";
 import * as fs from 'fs';
 import * as path from 'path';
 import sharp from 'sharp';
+import { AIModelFactory, AIProvider, ModelType, AIModelOptions } from "../ai/model-factory";
+
+export interface ImageAnalysisOptions {
+  provider?: AIProvider;
+  modelName?: string;
+  temperature?: number;
+  maxTokens?: number;
+}
 
 export class ImageAnalysisService {
-  private chatModel: ChatOpenAI;
+  private chatModel: BaseChatModel;
+  private modelOptions: ImageAnalysisOptions;
 
-  constructor() {
-    this.chatModel = new ChatOpenAI({
-      modelName: "gpt-4o",
-      openAIApiKey: process.env.OPENAI_API_KEY,
-      maxTokens: 1000,
+  constructor(options: ImageAnalysisOptions = {}) {
+    this.modelOptions = options;
+    
+    const modelOptions: AIModelOptions = {
+      ...options,
+      modelType: ModelType.VISION,
+    };
+
+    // Ensure we use a vision-capable model
+    const provider = options.provider || AIModelFactory['getDefaultProvider']();
+    const modelName = options.modelName || this.getDefaultVisionModel(provider);
+    
+    if (!AIModelFactory.isVisionCapable(provider, modelName)) {
+      throw new Error(`Model ${modelName} from provider ${provider} is not vision-capable`);
+    }
+
+    this.chatModel = AIModelFactory.createChatModel({
+      ...modelOptions,
+      provider,
+      modelName,
     });
+  }
+
+  private getDefaultVisionModel(provider: AIProvider): string {
+    const defaultVisionModels: Record<AIProvider, string> = {
+      [AIProvider.OPENAI]: "gpt-4o",
+      [AIProvider.ANTHROPIC]: "claude-3-5-sonnet-20241022",
+      [AIProvider.GROQ]: "llama-3.2-11b-vision-preview",
+      [AIProvider.GOOGLE]: "gemini-1.5-flash",
+    };
+    
+    return defaultVisionModels[provider];
   }
 
   async analyzeImage(
@@ -23,6 +58,7 @@ export class ImageAnalysisService {
     answer: string; 
     imageDescription: string; 
     extractedText?: string;
+    modelInfo?: any;
   }> {
     try {
       // Convert image to base64
@@ -33,7 +69,7 @@ export class ImageAnalysisService {
       const descriptionPrompt = this.createDescriptionPrompt(technology);
       const analysisPrompt = this.createAnalysisPrompt(question, technology);
 
-      // Analyze image with OpenAI Vision using LangChain
+      // Analyze image with vision model using LangChain
       const imageDescription = await this.callVisionWithLangChain(base64Image, descriptionPrompt);
       const answer = await this.callVisionWithLangChain(base64Image, analysisPrompt);
 
@@ -47,6 +83,10 @@ export class ImageAnalysisService {
         answer: answer.trim(),
         imageDescription: imageDescription.trim(),
         extractedText: extractedText?.trim(),
+        modelInfo: {
+          provider: this.modelOptions.provider || process.env.DEFAULT_AI_PROVIDER || 'openai',
+          model: this.modelOptions.modelName || 'default',
+        }
       };
     } catch (error) {
       console.error('Error analyzing image:', error);

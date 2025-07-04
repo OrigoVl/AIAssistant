@@ -11,6 +11,7 @@ import * as fs from 'fs';
 import { AssistantResolver } from './resolvers/assistant.resolver';
 import { AIResolver } from './resolvers/ai.resolver';
 import { ImageResolver } from './resolvers/image.resolver';
+import { SearchResolver } from './resolvers/search.resolver';
 import { AppDataSource } from './data-source';
 import { SearchResult } from './types/search-result.type';
 import { QAAnswer } from './types/qa-answer.type';
@@ -68,7 +69,7 @@ async function bootstrap(): Promise<void> {
   }
 
   const schema = await buildSchema({
-    resolvers: [AssistantResolver, AIResolver, ImageResolver],
+    resolvers: [AssistantResolver, AIResolver, ImageResolver, SearchResolver],
     orphanedTypes: [SearchResult, QAAnswer, ImageAnalysis],  
   });
 

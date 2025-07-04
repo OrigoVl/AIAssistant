@@ -60,4 +60,56 @@ export interface ImageUploadResponse {
   filename: string
   originalname?: string
   size?: number
-} 
+}
+
+// Code Search Types
+export interface CodeSearchResult {
+  results: SearchResultWithDetails[]
+  totalFound: number
+  executionTimeMs: number
+  technologiesSearched: string[]
+  strategiesUsed: string[]
+  recommendations?: string
+  warning?: string
+  isTechnical: boolean
+  suggestions?: string[]
+}
+
+export interface SearchResultWithDetails {
+  document: DocumentResult
+  score: number
+  matchType: string
+  matchDetails?: string
+}
+
+export interface QueryValidationResult {
+  isTechnical: boolean
+  warning?: string
+  suggestions?: string[]
+}
+
+export interface CodeTechnologyInfo {
+  value: string
+  label: string
+  description: string
+}
+
+export interface CodeSearchOptions {
+  technologies?: string[]
+  codeType?: 'documentation' | 'issue' | 'example'
+  strategies?: string[]
+  ensembleMethod?: string
+  skipTechnicalValidation?: boolean
+  limit?: number
+}
+
+export const CODE_SEARCH_TYPES = {
+  GENERAL: 'general',
+  DOCUMENTATION: 'documentation',
+  ISSUES: 'issues',
+  API: 'api',
+  TROUBLESHOOTING: 'troubleshooting',
+  BY_TECHNOLOGY: 'by_technology'
+} as const
+
+export type CodeSearchType = typeof CODE_SEARCH_TYPES[keyof typeof CODE_SEARCH_TYPES] 

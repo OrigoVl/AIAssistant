@@ -122,6 +122,29 @@
           </div>
         </div>
 
+        <!-- Technical Query Warning -->
+        <div v-if="showValidationWarning" class="validation-warning">
+          <div class="warning-content">
+            <div class="warning-icon">⚠️</div>
+            <div class="warning-text">
+              <h4>{{ lastValidationResult?.warning }}</h4>
+              <div v-if="lastValidationResult?.suggestions && lastValidationResult.suggestions.length > 0" class="suggestions">
+                <div class="suggestions-title">💡 Поради:</div>
+                <ul class="suggestions-list">
+                  <li v-for="suggestion in lastValidationResult.suggestions" :key="suggestion">
+                    {{ suggestion }}
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <button @click="hideValidationWarning" class="close-warning-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
         <!-- Input Area -->
         <div class="input-area">
           <div class="input-container">
@@ -134,7 +157,10 @@
             </div>
             
             <div class="input-wrapper"
-                 :class="{ 'drag-over': isDragOver }"
+                 :class="{ 
+                   'drag-over': isDragOver,
+                   'input-error': !!(lastValidationResult?.warning && !lastValidationResult?.isTechnical)
+                 }"
                  @drop="handleDrop"
                  @dragover="handleDragOver"
                  @dragleave="handleDragLeave">
@@ -153,10 +179,11 @@
                 <textarea
                   v-model="newQuestion"
                   class="message-input"
-                  :placeholder="selectedImage ? 'Опишіть що ви хочете дізнатися про це зображення...' : 'Запитайте будь-що'"
+                  :placeholder="getInputPlaceholder()"
                   rows="1"
                   :disabled="queryLoading || imageAnalysisLoading"
                   @keydown="handleKeyDown"
+                  @input="handleInputChange"
                 />
                 
                 <!-- Image Upload Button -->
@@ -181,8 +208,9 @@
                 
                 <button
                   @click="askAI"
-                  :disabled="(!newQuestion.trim() && !selectedImage) || queryLoading || imageAnalysisLoading"
+                  :disabled="(!newQuestion.trim() && !selectedImage) || queryLoading || imageAnalysisLoading || isQueryBlocked"
                   class="send-button"
+                  :title="isQueryBlocked ? 'Запит не є технічним' : 'Відправити повідомлення'"
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                     <path d="M22 2L11 13M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -205,7 +233,7 @@
           
           <!-- Disclaimer -->
           <div class="disclaimer">
-            AI Assistant може помилятися. Перевіряйте важливу інформацію.
+            AI Assistant працює з технічними запитами про програмування. Може помилятися. Перевіряйте важливу інформацію.
           </div>
         </div>
       </div>
@@ -219,7 +247,7 @@ import { useLazyQuery, useMutation } from '@vue/apollo-composable'
 import gql from 'graphql-tag'
 import MarkdownIt from 'markdown-it'
 import ImageUpload from './ImageUpload.vue'
-import type { Technology, ChatMessage, AIResponse, ImageAnalysisResponse, ImageUploadResponse } from '@/types'
+import type { Technology, ChatMessage, AIResponse, ImageAnalysisResponse, ImageUploadResponse, QueryValidationResult } from '@/types'
 
 // Initialize markdown-it
 const md = new MarkdownIt({
@@ -249,6 +277,11 @@ const imagePreviewUrl = ref<string>('')
 const isDragOver = ref<boolean>(false)
 const showImageUpload = ref<boolean>(false)
 
+// Technical validation state
+const lastValidationResult = ref<QueryValidationResult | null>(null)
+const showValidationWarning = ref<boolean>(false)
+const validationTimeout = ref<number | null>(null)
+
 // Computed properties
 const currentTechnology = computed(() => 
   technologies.value.find(tech => tech.value === selectedTech.value)
@@ -256,15 +289,34 @@ const currentTechnology = computed(() =>
 
 const hasMessages = computed(() => messages.value.length > 0)
 
+const isQueryBlocked = computed(() => {
+  return Boolean(lastValidationResult.value?.warning && 
+         !lastValidationResult.value?.isTechnical &&
+         !selectedImage.value) // Зображення завжди дозволені
+})
+
 // GraphQL Queries and Mutations
 const ASK_AI = gql`
   query AskAI($question: String!, $technology: String!) {
     askAI(question: $question, technology: $technology) {
       answer
+      warning
+      isTechnical
+      suggestions
       sources {
         source
         score
       }
+    }
+  }
+`
+
+const VALIDATE_QUERY = gql`
+  query ValidateQuery($query: String!) {
+    validateQuery(query: $query) {
+      isTechnical
+      warning
+      suggestions
     }
   }
 `
@@ -289,10 +341,73 @@ const { load: executeAI, loading: queryLoading, refetch } = useLazyQuery(ASK_AI,
   errorPolicy: 'all'
 })
 
+const { load: validateQuery, loading: validationLoading } = useLazyQuery(VALIDATE_QUERY, undefined, {
+  fetchPolicy: 'network-only',
+  errorPolicy: 'all'
+})
+
 const { mutate: analyzeImageMutation, loading: imageAnalysisLoading } = useMutation(ANALYZE_IMAGE)
 
 // Track if query has been loaded at least once
 const queryInitialized = ref(false)
+
+// Technical validation methods
+async function performValidation(queryText: string): Promise<void> {
+  if (queryText.length < 2) {
+    lastValidationResult.value = null
+    showValidationWarning.value = false
+    return
+  }
+
+  try {
+    const result = await validateQuery(undefined, { query: queryText })
+    if (result?.data?.validateQuery) {
+      lastValidationResult.value = result.data.validateQuery
+      
+      // Показуємо попередження для нетехнічних запитів
+      if (!result.data.validateQuery.isTechnical) {
+        showValidationWarning.value = true
+      } else {
+        showValidationWarning.value = false
+      }
+    }
+  } catch (error) {
+    console.error('Validation error:', error)
+    lastValidationResult.value = null
+  }
+}
+
+function handleInputChange(): void {
+  // Дебаунсинг валідації
+  if (validationTimeout.value) {
+    clearTimeout(validationTimeout.value)
+  }
+  
+  validationTimeout.value = setTimeout(() => {
+    if (newQuestion.value.trim()) {
+      performValidation(newQuestion.value.trim())
+    } else {
+      lastValidationResult.value = null
+      showValidationWarning.value = false
+    }
+  }, 500) as unknown as number
+}
+
+function hideValidationWarning(): void {
+  showValidationWarning.value = false
+}
+
+function getInputPlaceholder(): string {
+  if (selectedImage.value) {
+    return 'Опишіть що ви хочете дізнатися про це зображення...'
+  }
+  
+  if (lastValidationResult.value?.warning && !lastValidationResult.value?.isTechnical) {
+    return 'Введіть технічний запит про програмування...'
+  }
+  
+  return `Запитайте про ${currentTechnology.value?.label || 'програмування'}`
+}
 
 // Image handling methods
 function triggerFileSelect(): void {
@@ -478,6 +593,20 @@ async function askAI(): Promise<void> {
               sources: aiResponse.sources || [],
             }
           }
+        }
+
+        // Показуємо попередження якщо запит не технічний
+        if (aiResponse.warning && !aiResponse.isTechnical) {
+          lastValidationResult.value = {
+            isTechnical: aiResponse.isTechnical,
+            warning: aiResponse.warning,
+            suggestions: aiResponse.suggestions
+          }
+          showValidationWarning.value = true
+        } else {
+          // Скриваємо попередження для технічних запитів
+          lastValidationResult.value = null
+          showValidationWarning.value = false
         }
       }
     }
@@ -684,6 +813,12 @@ function getTechIcon(tech: string): string {
   margin: 0;
 }
 
+.empty-subtitle {
+  font-size: var(--font-size-base);
+  color: var(--color-text-muted);
+  margin-top: var(--space-2);
+}
+
 .message-group {
   display: flex;
   flex-direction: column;
@@ -886,6 +1021,11 @@ function getTechIcon(tech: string): string {
   background-color: rgba(25, 195, 125, 0.1);
 }
 
+.input-wrapper.input-error {
+  border-color: #ef4444;
+  background-color: rgba(255, 100, 100, 0.1);
+}
+
 .input-wrapper:focus-within {
   border-color: var(--color-accent);
 }
@@ -1035,6 +1175,81 @@ function getTechIcon(tech: string): string {
   line-height: var(--line-height-normal);
 }
 
+/* Technical Query Warning */
+.validation-warning {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background-color: #fef3c7;
+  color: #92400e;
+  padding: var(--space-3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 1000;
+  box-shadow: var(--shadow-lg);
+  border-bottom: 1px solid #fbbf24;
+}
+
+.warning-content {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.warning-icon {
+  font-size: var(--font-size-xl);
+}
+
+.warning-text h4 {
+  margin: 0 0 var(--space-1) 0;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+}
+
+.suggestions {
+  margin-top: var(--space-2);
+}
+
+.suggestions-title {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-1);
+}
+
+.suggestions-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.suggestions-list li {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.close-warning-btn {
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: var(--space-1);
+  border-radius: var(--radius-full);
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-warning-btn:hover {
+  background-color: var(--color-surface-variant);
+  color: var(--color-text);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .ai-assistant {
@@ -1089,6 +1304,44 @@ function getTechIcon(tech: string): string {
   
   .empty-state h2 {
     font-size: var(--font-size-xl);
+  }
+
+  .validation-warning {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: var(--space-2);
+  }
+
+  .warning-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-1);
+  }
+
+  .warning-icon {
+    font-size: var(--font-size-lg);
+  }
+
+  .warning-text h4 {
+    font-size: var(--font-size-sm);
+  }
+
+  .suggestions {
+    width: 100%;
+  }
+
+  .suggestions-list {
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  .suggestions-list li {
+    font-size: var(--font-size-xs);
+  }
+
+  .close-warning-btn {
+    width: 100%;
+    justify-content: flex-end;
   }
 }
 </style>

@@ -1,7 +1,7 @@
-import { ChatOpenAI } from "@langchain/openai";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { AppDataSource } from "../data-source";
 import { Document } from "../entities/document.entity";
+import { AIModelFactory, AIProvider, ModelType, AIModelOptions } from "./model-factory";
 
 const UA_TEMPLATE = `Ти експерт з {technology}. Відповідай українською мовою.
 Контекст:
@@ -10,14 +10,20 @@ const UA_TEMPLATE = `Ти експерт з {technology}. Відповідай �
 Питання: {question}
 Відповідь:`;
 
-export async function createQAChain(technology: string) {
-  const model = new ChatOpenAI({
-    openAIApiKey: process.env.OPENAI_API_KEY,
-    modelName: "gpt-4-turbo",
-    temperature: 0.2,
-    maxTokens: 2000,
-  });
+export interface QAChainOptions {
+  provider?: AIProvider;
+  modelName?: string;
+  temperature?: number;
+  maxTokens?: number;
+}
 
+export async function createQAChain(technology: string, options: QAChainOptions = {}) {
+  const modelOptions: AIModelOptions = {
+    ...options,
+    modelType: ModelType.TEXT_GENERATION,
+  };
+
+  const model = AIModelFactory.createChatModel(modelOptions);
   const prompt = PromptTemplate.fromTemplate(UA_TEMPLATE);
 
   // Simple document retriever without vector store
@@ -69,7 +75,11 @@ export async function createQAChain(technology: string) {
       
       return {
         text: typeof response.content === 'string' ? response.content : response.content.toString(),
-        sourceDocuments: docs
+        sourceDocuments: docs,
+        modelInfo: {
+          provider: options.provider || process.env.DEFAULT_AI_PROVIDER || 'openai',
+          model: options.modelName || 'default',
+        }
       };
     }
   };
