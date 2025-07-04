@@ -41,6 +41,41 @@
   --color-button-secondary: #343541;
   --color-button-secondary-hover: #40414f;
 
+  /* Warning Color Variables */
+  /* Light mode warning colors */
+  --warning-bg-start: #fef3c7;
+  --warning-bg-end: #fde68a;
+  --warning-border: #f59e0b;
+  --warning-overlay-bg: rgba(0, 0, 0, 0.02);
+  
+  /* Warning text colors */
+  --warning-text-primary: #92400e;
+  --warning-text-secondary: #78350f;
+  --warning-text-tertiary: #a16207;
+  --warning-icon-color: #d97706;
+  
+  /* Warning shadow colors */
+  --warning-shadow-light: rgba(0, 0, 0, 0.1);
+  --warning-shadow-medium: rgba(0, 0, 0, 0.06);
+  --warning-shadow-accent: rgba(245, 158, 11, 0.1);
+  --warning-shadow-accent-hover: rgba(245, 158, 11, 0.2);
+  
+  /* Warning background colors */
+  --warning-icon-bg: rgba(245, 158, 11, 0.15);
+  --warning-suggestion-bg: rgba(255, 255, 255, 0.4);
+  --warning-suggestion-bg-hover: rgba(255, 255, 255, 0.6);
+  --warning-suggestion-border: #f59e0b;
+  
+  /* Warning button colors */
+  --warning-button-bg: rgba(255, 255, 255, 0.8);
+  --warning-button-bg-hover: rgba(255, 255, 255, 1);
+  --warning-button-border: rgba(245, 158, 11, 0.2);
+  --warning-button-border-hover: #f59e0b;
+  --warning-button-text: #92400e;
+  
+  /* Warning icon shadow */
+  --warning-icon-shadow: rgba(217, 119, 6, 0.2);
+
   /* Spacing */
   --space-1: 0.25rem;
   --space-2: 0.5rem;
@@ -86,9 +121,34 @@
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.1);
   --shadow-base: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.1);
 
   /* Transitions */
   --transition: 150ms ease-in-out;
+}
+
+/* Dark mode warning colors */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --warning-bg-start: #451a03;
+    --warning-bg-end: #78350f;
+    --warning-border: #f59e0b;
+    
+    --warning-text-primary: #fbbf24;
+    --warning-text-secondary: #f3e8ff;
+    --warning-text-tertiary: #fde68a;
+    --warning-icon-color: #fbbf24;
+    
+    --warning-suggestion-bg: rgba(0, 0, 0, 0.2);
+    --warning-suggestion-bg-hover: rgba(0, 0, 0, 0.3);
+    --warning-suggestion-border: #fbbf24;
+    
+    --warning-button-bg: rgba(0, 0, 0, 0.4);
+    --warning-button-bg-hover: rgba(0, 0, 0, 0.6);
+    --warning-button-border: rgba(251, 191, 36, 0.2);
+    --warning-button-border-hover: #fbbf24;
+    --warning-button-text: #fbbf24;
+  }
 }
 
 /* Global Styles */
