@@ -1,0 +1,383 @@
+// Conditional Components Styles
+// =============================
+
+// CSS Custom Properties
+:root {
+  --conditional-border-radius: 8px;
+  --conditional-spacing: 10px;
+  --conditional-border-color: #dadce1;
+  --conditional-background-color: var(--background-table-row);
+  --conditional-error-color: #d32f2f;
+  --conditional-success-color: #2e7d32;
+  --conditional-warning-color: #ed6c02;
+  --conditional-primary-color: #2196f3;
+  --conditional-transition-duration: 0.2s;
+  --conditional-hover-scale: 1.1;
+}
+
+// Main Conditional List Container
+.conditional-list {
+  &__container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__spinner-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    min-height: 200px;
+  }
+
+  &__error {
+    padding: var(--conditional-spacing);
+    margin: var(--conditional-spacing);
+    border-radius: var(--conditional-border-radius);
+    background-color: rgba(211, 47, 47, 0.1);
+    color: var(--conditional-error-color);
+    border: 1px solid rgba(211, 47, 47, 0.3);
+    font-size: 14px;
+    line-height: 1.4;
+  }
+
+  &__success {
+    padding: var(--conditional-spacing);
+    margin: var(--conditional-spacing);
+    border-radius: var(--conditional-border-radius);
+    background-color: rgba(46, 125, 50, 0.1);
+    color: var(--conditional-success-color);
+    border: 1px solid rgba(46, 125, 50, 0.3);
+    font-size: 14px;
+    line-height: 1.4;
+  }
+}
+
+// Conditional Block
+.conditional-block {
+  margin-bottom: 20px;
+  border-radius: var(--conditional-border-radius);
+  background-color: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+// Conditional Draggable List
+.conditional-draggable-list {
+  &__drag-handle {
+    cursor: grab;
+    flex: 0 0 auto;
+    margin: 10px;
+    padding: 5px;
+    border-radius: 4px;
+    transition: all var(--conditional-transition-duration) ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.05);
+      transform: scale(1.05);
+    }
+
+    &:active {
+      cursor: grabbing;
+      transform: scale(0.95);
+    }
+
+    &:focus {
+      outline: 2px solid var(--conditional-primary-color);
+      outline-offset: 2px;
+    }
+
+    img {
+      transition: opacity var(--conditional-transition-duration) ease;
+    }
+  }
+}
+
+// Conditional Draggable Item
+.conditional-draggable-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 20px;
+  border: 1px solid var(--conditional-border-color);
+  border-radius: var(--conditional-border-radius);
+  padding: 8px 0;
+  background-color: #fff;
+  transition: all var(--conditional-transition-duration) ease;
+
+  &:hover {
+    border-color: var(--conditional-primary-color);
+    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.1);
+  }
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  &--multiple {
+    border-left: 4px solid var(--conditional-primary-color);
+  }
+
+  &__drag-handle {
+    cursor: grab;
+    flex: 0 0 auto;
+    margin: 10px;
+    padding: 5px;
+    border-radius: 4px;
+    transition: all var(--conditional-transition-duration) ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.05);
+      transform: scale(1.05);
+    }
+
+    &:active {
+      cursor: grabbing;
+      transform: scale(0.95);
+    }
+
+    &:focus {
+      outline: 2px solid var(--conditional-primary-color);
+      outline-offset: 2px;
+    }
+  }
+
+  &__content {
+    flex: 1 1 auto;
+    min-width: 0; // Prevents flex item from overflowing
+  }
+
+  &__if-block {
+    margin-bottom: 8px;
+  }
+
+  &__delete-button {
+    flex: 0 0 auto;
+    margin: 13px;
+    font-size: 18px;
+    padding: 5px;
+    border-radius: 4px;
+    transition: all var(--conditional-transition-duration) ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &--clickable {
+      cursor: pointer;
+      color: var(--conditional-error-color);
+
+      &:hover {
+        background-color: rgba(211, 47, 47, 0.1);
+        transform: scale(var(--conditional-hover-scale));
+      }
+
+      &:focus {
+        outline: 2px solid var(--conditional-error-color);
+        outline-offset: 2px;
+      }
+
+      &:active {
+        transform: scale(0.95);
+      }
+    }
+
+    &--non-clickable {
+      opacity: 0.6;
+      cursor: not-allowed;
+      color: #999;
+    }
+  }
+}
+
+// Conditional Actions
+.conditional-actions {
+  border-radius: 0 0 var(--conditional-border-radius) var(--conditional-border-radius);
+  padding: var(--conditional-spacing) 40px;
+  background-color: var(--conditional-background-color);
+  margin: 10px 0 20px;
+  border-top: 1px solid var(--conditional-border-color);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+// Draggable States
+.draggable-ghost {
+  opacity: 0.5;
+  background-color: #f0f0f0;
+  border: 2px dashed #ccc;
+  transform: rotate(2deg);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.draggable-chosen {
+  background-color: #e3f2fd;
+  border: 2px solid var(--conditional-primary-color);
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.2);
+  transform: scale(1.02);
+}
+
+.draggable-sortable {
+  transition: transform var(--conditional-transition-duration) ease;
+}
+
+// Loading States
+.conditional-loading {
+  &__overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+  }
+
+  &__spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid var(--conditional-primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+}
+
+// Animations
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+  from { transform: translateX(-20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+// Apply animations to components
+.conditional-block {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.conditional-draggable-item {
+  animation: slideIn 0.2s ease-out;
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .conditional-list {
+    &__container {
+      padding: 0 var(--conditional-spacing);
+    }
+  }
+
+  .conditional-draggable-item {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 12px 8px;
+
+    &__drag-handle {
+      align-self: flex-start;
+      margin: 5px;
+    }
+
+    &__delete-button {
+      align-self: flex-end;
+      margin: 5px;
+    }
+
+    &__content {
+      margin: 8px 0;
+    }
+  }
+
+  .conditional-actions {
+    padding: var(--conditional-spacing) 20px;
+    margin: 8px 0 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .conditional-draggable-item {
+    padding: 8px 4px;
+
+    &__drag-handle {
+      margin: 3px;
+      padding: 3px;
+    }
+
+    &__delete-button {
+      margin: 3px;
+      padding: 3px;
+      font-size: 16px;
+    }
+  }
+
+  .conditional-actions {
+    padding: 8px 16px;
+  }
+}
+
+// High contrast mode support
+@media (prefers-contrast: high) {
+  .conditional-draggable-item {
+    border-width: 2px;
+  }
+
+  .conditional-draggable-item__delete-button--clickable {
+    border: 1px solid var(--conditional-error-color);
+  }
+
+  .conditional-draggable-item__drag-handle {
+    border: 1px solid #000;
+  }
+}
+
+// Reduced motion support
+@media (prefers-reduced-motion: reduce) {
+  .conditional-draggable-item,
+  .conditional-draggable-item__drag-handle,
+  .conditional-draggable-item__delete-button,
+  .conditional-block {
+    transition: none;
+    animation: none;
+  }
+
+  .draggable-ghost,
+  .draggable-chosen {
+    transform: none;
+  }
+}
+
+// Print styles
+@media print {
+  .conditional-draggable-item__drag-handle,
+  .conditional-draggable-item__delete-button,
+  .conditional-actions {
+    display: none !important;
+  }
+
+  .conditional-draggable-item {
+    border: 1px solid #000;
+    break-inside: avoid;
+  }
+}
