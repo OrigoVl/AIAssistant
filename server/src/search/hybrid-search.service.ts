@@ -51,7 +51,7 @@ export class HybridSearchService {
     });
   }
 
-  // Основний метод гібридного пошуку
+  // Main hybrid search method
   async search(query: string, options: HybridSearchOptions = {}): Promise<SearchResult[]> {
     const startTime = Date.now();
     this.updateAnalytics(query);

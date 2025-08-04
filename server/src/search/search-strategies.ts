@@ -26,7 +26,7 @@ export interface SearchOptions {
 // 1. Лексичний пошук (Keyword/Token Search)
 export class LexicalSearchStrategy implements SearchStrategy {
   name = "lexical";
-  description = "Точний пошук за ключовими словами";
+  description = "Exact keyword search";
 
   private docRepository = AppDataSource.getRepository(Document);
 
@@ -79,26 +79,30 @@ export class LexicalSearchStrategy implements SearchStrategy {
 // 2. Full-Text Search (PostgreSQL)
 export class FullTextSearchStrategy implements SearchStrategy {
   name = "fulltext";
-  description = "PostgreSQL повнотекстовий пошук з ранжуванням";
+  description = "PostgreSQL full-text search with ranking";
 
   private docRepository = AppDataSource.getRepository(Document);
 
   async search(query: string, options: SearchOptions = {}): Promise<SearchResult[]> {
     const { limit = 10, technology, type } = options;
     
-    // Підготовка запиту для PostgreSQL full-text search
+    // Prepare query for PostgreSQL full-text search
     const tsQuery = query.split(/\s+/)
       .filter(word => word.length > 2)
       .map(word => `${word}:*`)
       .join(' & ');
 
+    if (!tsQuery) {
+      return [];
+    }
+
     let sql = `
       SELECT doc.*, 
-             ts_rank(search_vector, to_tsquery('english', $1)) as rank,
+             ts_rank(to_tsvector('english', doc.title || ' ' || doc.content), to_tsquery('english', $1)) as rank,
              ts_headline('english', doc.content, to_tsquery('english', $1), 
                         'MaxWords=30, MinWords=10') as headline
       FROM document doc
-      WHERE search_vector @@ to_tsquery('english', $1)
+      WHERE to_tsvector('english', doc.title || ' ' || doc.content) @@ to_tsquery('english', $1)
     `;
 
     const params: any[] = [tsQuery];
@@ -119,33 +123,40 @@ export class FullTextSearchStrategy implements SearchStrategy {
     sql += ` ORDER BY rank DESC LIMIT $${paramIndex}`;
     params.push(limit);
 
-    const results = await AppDataSource.query(sql, params);
+    try {
+      const results = await AppDataSource.query(sql, params);
 
-    return results.map((row: any) => ({
-      document: {
-        id: row.id,
-        title: row.title,
-        content: row.content,
-        source: row.source,
-        type: row.type,
-        technology: row.technology,
-        createdAt: row.created_at
-      } as Document,
-      score: parseFloat(row.rank),
-      matchType: "fulltext",
-      matchDetails: { 
-        headline: row.headline,
-        rank: row.rank,
-        query: tsQuery
-      }
-    }));
+      return results.map((row: any) => ({
+        document: {
+          id: row.id,
+          title: row.title,
+          content: row.content,
+          source: row.source,
+          type: row.type,
+          technology: row.technology,
+          createdAt: row.created_at
+        } as Document,
+        score: parseFloat(row.rank),
+        matchType: "fulltext",
+        matchDetails: { 
+          headline: row.headline,
+          rank: row.rank,
+          query: tsQuery
+        }
+      }));
+    } catch (error) {
+      console.error('FullTextSearchStrategy error:', error);
+      // Fallback to lexical search if full-text search fails
+      const lexicalStrategy = new LexicalSearchStrategy();
+      return lexicalStrategy.search(query, options);
+    }
   }
 }
 
 // 3. BM25 Algorithm (Best Matching)
 export class BM25SearchStrategy implements SearchStrategy {
   name = "bm25";
-  description = "BM25 алгоритм ранжування документів";
+  description = "BM25 document ranking algorithm";
 
   private docRepository = AppDataSource.getRepository(Document);
 
@@ -217,7 +228,7 @@ export class BM25SearchStrategy implements SearchStrategy {
 // 4. Fuzzy Search (Нечіткий пошук)
 export class FuzzySearchStrategy implements SearchStrategy {
   name = "fuzzy";
-  description = "Нечіткий пошук з толерантністю до помилок";
+  description = "Fuzzy search with error tolerance";
 
   private docRepository = AppDataSource.getRepository(Document);
 
@@ -313,7 +324,7 @@ export class FuzzySearchStrategy implements SearchStrategy {
 // 5. N-gram Search
 export class NGramSearchStrategy implements SearchStrategy {
   name = "ngram";
-  description = "N-gram пошук для часткових збігів";
+  description = "N-gram search for partial matches";
 
   private docRepository = AppDataSource.getRepository(Document);
 
@@ -380,7 +391,7 @@ export class NGramSearchStrategy implements SearchStrategy {
 // 6. Rule-Based Search (Пошук на основі правил)
 export class RuleBasedSearchStrategy implements SearchStrategy {
   name = "rule_based";
-  description = "Пошук на основі правил та патернів";
+  description = "Rule-based search with patterns";
 
   private docRepository = AppDataSource.getRepository(Document);
 

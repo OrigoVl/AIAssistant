@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
+@import './form-styles.css';
 
 :root {
   /* AI Assistant Dark Theme Colors */
@@ -23,6 +24,77 @@
   --color-accent: #19c37d;
   --color-accent-hover: #16a870;
   --color-accent-disabled: #2d7a5f;
+  
+  /* Primary colors for forms and UI */
+  --color-primary: #3b82f6;
+  --color-primary-hover: #2563eb;
+  --color-primary-light: rgba(59, 130, 246, 0.1);
+  --color-primary-lighter: rgba(59, 130, 246, 0.05);
+  
+  /* Secondary colors */
+  --color-secondary: #8b5cf6;
+  --color-secondary-hover: #7c3aed;
+  --color-secondary-light: rgba(139, 92, 246, 0.1);
+  
+  /* Gradient colors */
+  --gradient-primary: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  --gradient-primary-light: linear-gradient(90deg, var(--color-primary-light), var(--color-secondary-light));
+  --gradient-surface: linear-gradient(135deg, var(--color-background) 0%, var(--color-surface) 100%);
+  --gradient-surface-reverse: linear-gradient(135deg, var(--color-surface) 0%, var(--color-background) 100%);
+  
+  /* Error colors */
+  --color-error: #ef4444;
+  --color-error-hover: #dc2626;
+  --color-error-light: #fef2f2;
+  --color-error-border: rgba(220, 38, 38, 0.1);
+  
+  /* Success colors */
+  --color-success: #10b981;
+  --color-success-hover: #059669;
+  
+  /* Warning colors */
+  --color-warning: #f59e0b;
+  --color-warning-hover: #d97706;
+  
+  /* Shadow colors */
+  --shadow-light: rgba(0, 0, 0, 0.05);
+  --shadow-medium: rgba(0, 0, 0, 0.1);
+  --shadow-heavy: rgba(0, 0, 0, 0.2);
+  --shadow-primary: rgba(59, 130, 246, 0.1);
+  --shadow-primary-hover: rgba(59, 130, 246, 0.2);
+  --shadow-primary-focus: rgba(59, 130, 246, 0.1);
+  
+  /* Status colors */
+  --color-success-light: #f0fdf4;
+  --color-success-border: #22c55e;
+  --color-success-text: #166534;
+  
+  --color-warning-light: #fef3c7;
+  --color-warning-border: #f59e0b;
+  --color-warning-text: #92400e;
+  --color-warning-text-secondary: #d97706;
+  
+  --color-error-light: #fef2f2;
+  --color-error-text: #dc2626;
+  
+  /* Priority colors */
+  --color-priority-low: var(--color-success);
+  --color-priority-medium: var(--color-warning);
+  --color-priority-high: var(--color-error);
+  
+  /* Additional gradient colors */
+  --gradient-success: linear-gradient(135deg, var(--color-success) 0%, var(--color-success-hover) 100%);
+  --gradient-warning: linear-gradient(135deg, var(--color-warning) 0%, var(--color-warning-hover) 100%);
+  --gradient-error: linear-gradient(135deg, var(--color-error) 0%, var(--color-error-hover) 100%);
+  
+  /* Additional background colors */
+  --color-bg-dark: #1f2937;
+  --color-bg-light: #f3f4f6;
+  --color-border-dark: #374151;
+  
+  /* Additional accent colors */
+  --color-accent-pink: #ec4899;
+  --color-accent-purple: #8b5cf6;
 
   /* Legacy color mappings */
   --color-white: #ffffff;

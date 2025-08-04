@@ -673,12 +673,20 @@ export class SearchResolver {
   async validateQuery(
     @Arg("query") query: string
   ): Promise<QueryValidationResult> {
-    const validation = this.codeSearchService.validateQuery(query);
-    
+    // Спрощена валідація - тільки перевіряємо довжину
+    if (query.trim().length < 2) {
+      return {
+        isTechnical: false,
+        warning: 'Запит занадто короткий. Введіть більше деталей.',
+        suggestions: ['Додайте більше ключових слів для пошуку']
+      };
+    }
+
+    // Всі запити вважаються технічними - нехай AI модель вирішує
     return {
-      isTechnical: validation.isTechnical,
-      warning: validation.warning,
-      suggestions: validation.suggestions
+      isTechnical: true,
+      warning: undefined,
+      suggestions: undefined
     };
   }
 

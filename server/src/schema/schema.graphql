@@ -14,6 +14,19 @@ type Query {
     query: String!
     limit: Int = 10
   ): [GitHubIssue!]!
+  
+  # Development Agent Queries
+  getProjectTemplates(technology: String!, type: String!): [ProjectStructure!]!
+  
+  getDevelopmentTasks(
+    technology: String
+    status: String
+  ): [DevelopmentTask!]!
+  
+  getTechnologyRecommendations(
+    projectType: String!
+    requirements: [String!]!
+  ): [String!]!
 }
 
 type Mutation {
@@ -22,6 +35,88 @@ type Mutation {
     question: String!
     technology: String
   ): ImageAnalysis!
+  
+  # Development Agent Mutations
+  generateCode(input: CodeGenerationInput!): CodeGenerationResult!
+  
+  reviewCode(input: CodeReviewInput!): CodeReviewResult!
+  
+  debugCode(input: DebuggingInput!): DebuggingResult!
+}
+
+# Input Types
+input CodeGenerationInput {
+  description: String!
+  technology: String!
+  language: String
+  framework: String
+  requirements: [String!]
+  style: String
+  includeTests: Boolean
+  includeDocs: Boolean
+}
+
+input CodeReviewInput {
+  code: String!
+  language: String!
+  context: String
+  focusAreas: [String!]
+}
+
+input DebuggingInput {
+  errorMessage: String!
+  code: String!
+  language: String!
+  stackTrace: String
+  environment: String
+}
+
+# Development Agent Types
+type CodeGenerationResult {
+  code: String!
+  tests: [String!]
+  documentation: [String!]
+  explanation: String!
+  suggestions: [String!]!
+  thinking: String
+  generatedAt: String!
+}
+
+type CodeReviewResult {
+  score: Int!
+  issues: [String!]!
+  suggestions: [String!]!
+  bestPractices: [String!]!
+  summary: String!
+  reviewedAt: String!
+}
+
+type DebuggingResult {
+  rootCause: String!
+  solutions: [String!]!
+  fixedCode: String!
+  preventionTips: [String!]!
+  explanation: String!
+  debuggedAt: String!
+}
+
+type ProjectStructure {
+  name: String!
+  type: String!
+  files: [String!]!
+  directories: [String!]!
+  description: String!
+}
+
+type DevelopmentTask {
+  id: String!
+  title: String!
+  description: String!
+  priority: String!
+  status: String!
+  technology: String!
+  estimatedTime: String!
+  createdAt: String!
 }
 
 # Document Types
@@ -50,6 +145,9 @@ type QAAnswer {
   answer: String!
   sources: [SourceDocument!]!
   generatedAt: String!
+  warning: String
+  isTechnical: Boolean!
+  suggestions: [String!]
 }
 
 type SourceDocument {

@@ -65,18 +65,15 @@ export class AIResolver {
     @Arg("maxTokens", { nullable: true }) maxTokens?: number,
     @Arg("skipTechnicalValidation", { nullable: true, defaultValue: false }) skipTechnicalValidation?: boolean
   ): Promise<QAAnswer> {
-    // Валідація технічності запиту
-    const validation = this.codeSearchService.validateQuery(question);
-    
-    // Якщо запит нетехнічний і валідацію не пропущено
-    if (!validation.isTechnical && !skipTechnicalValidation) {
+    // Базова валідація довжини запиту
+    if (question.trim().length < 2) {
       return {
-        answer: "Я спеціалізуюся на технічних питаннях про програмування. Будь ласка, задайте питання про Vue.js, Node.js, TypeScript або GrapesJS.",
+        answer: "Запит занадто короткий. Будь ласка, введіть більше деталей.",
         generatedAt: new Date().toISOString(),
         sources: [],
-        warning: validation.warning,
+        warning: "Запит занадто короткий",
         isTechnical: false,
-        suggestions: validation.suggestions
+        suggestions: ["Додайте більше ключових слів", "Опишіть питання детальніше"]
       };
     }
 
@@ -111,7 +108,7 @@ export class AIResolver {
         generatedAt: new Date().toISOString(),
         sources: [],
         warning: "Технічна помилка при обробці запиту",
-        isTechnical: validation.isTechnical,
+        isTechnical: true,
         suggestions: ["Спробуйте переформулювати запит", "Перевірте інтернет з'єднання", "Спробуйте пізніше"]
       };
     }

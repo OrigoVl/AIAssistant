@@ -18,7 +18,8 @@ async function demoCodeSearch() {
     "погода завтра",
     "typescript interface error",
     "де купити хліб",
-    "react hooks useState"
+    "react hooks useState",
+    "a" // короткий запит
   ];
 
   for (const testQuery of testQueries) {
@@ -32,17 +33,14 @@ async function demoCodeSearch() {
     }
   }
 
-  // 1. Демонстрація обробки нетехнічного запиту
-  console.log("\n1️⃣ Обробка нетехнічного запиту:");
-  const nonTechnicalResult = await codeSearchService.searchCode("як зварити борщ?");
-  console.log(`   Запит: "як зварити борщ?"`);
-  console.log(`   Технічний: ${nonTechnicalResult.isTechnical}`);
-  console.log(`   Результатів: ${nonTechnicalResult.results.length}`);
-  if (nonTechnicalResult.warning) {
-    console.log(`   Попередження: ${nonTechnicalResult.warning}`);
-  }
-  if (nonTechnicalResult.suggestions) {
-    console.log(`   Поради: ${nonTechnicalResult.suggestions.join('; ')}`);
+  // 1. Демонстрація обробки короткого запиту
+  console.log("\n1️⃣ Обробка короткого запиту:");
+  const shortQueryResult = await codeSearchService.searchCode("a");
+  console.log(`   Запит: "a"`);
+  console.log(`   Технічний: ${shortQueryResult.isTechnical}`);
+  console.log(`   Результатів: ${shortQueryResult.results.length}`);
+  if (shortQueryResult.warning) {
+    console.log(`   Попередження: ${shortQueryResult.warning}`);
   }
 
   // 2. Базовий пошук по всіх кодових технологіях

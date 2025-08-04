@@ -31,15 +31,13 @@ export class CodeSearchService {
 
   // Основний метод пошуку по коду з валідацією
   async searchCode(query: string, options: CodeSearchOptions = {}): Promise<CodeSearchResult> {
-    // Перевіряємо чи запит технічний
-    const validationResult = this.validateTechnicalQuery(query);
-    
-    if (!validationResult.isTechnical && !options.skipTechnicalValidation) {
+    // Спрощена валідація - тільки перевіряємо довжину запиту
+    if (query.trim().length < 2) {
       return {
         results: [],
-        warning: validationResult.warning,
+        warning: 'Запит занадто короткий. Введіть більше деталей.',
         isTechnical: false,
-        suggestions: validationResult.suggestions
+        suggestions: ['Додайте більше ключових слів для пошуку']
       };
     }
 
@@ -48,7 +46,8 @@ export class CodeSearchService {
       codeType,
       strategies = this.getCodeOptimizedStrategies(query),
       ensembleMethod = 'weighted_sum',
-      limit = 10
+      limit = 10,
+      skipTechnicalValidation = false
     } = options;
 
     console.log(`🔍 Code Search: "${query}" in technologies: ${technologies.join(', ')}`);
@@ -105,122 +104,24 @@ export class CodeSearchService {
     };
   }
 
-  // Валідація технічного запиту
+  // Спрощена валідація - тільки базові перевірки
   private validateTechnicalQuery(query: string): { 
     isTechnical: boolean; 
     warning?: string; 
     suggestions?: string[] 
   } {
-    const lowerQuery = query.toLowerCase().trim();
+    const trimmedQuery = query.trim();
     
-    if (lowerQuery.length < 2) {
+    if (trimmedQuery.length < 2) {
       return {
         isTechnical: false,
         warning: 'Запит занадто короткий. Введіть більше деталей.',
-        suggestions: ['Додайте більше ключових слів', 'Використовуйте технічні терміни']
+        suggestions: ['Додайте більше ключових слів для пошуку']
       };
     }
 
-    // Технічні ключові слова
-    const technicalKeywords = [
-      // Технології
-      'vue', 'node', 'typescript', 'javascript', 'grapesjs', 'react', 'angular',
-      // Програмування
-      'component', 'function', 'method', 'class', 'interface', 'api', 'library',
-      'framework', 'code', 'script', 'programming', 'development', 'web',
-      // Проблеми та вирішення
-      'error', 'bug', 'issue', 'exception', 'debug', 'fix', 'solution',
-      'problem', 'troubleshoot', 'compilation', 'runtime',
-      // Технічні концепції
-      'async', 'await', 'promise', 'callback', 'event', 'handler', 'listener',
-      'lifecycle', 'state', 'props', 'data', 'computed', 'watch', 'reactive',
-      'server', 'client', 'backend', 'frontend', 'database', 'query',
-      'authentication', 'authorization', 'middleware', 'router', 'route',
-      'module', 'import', 'export', 'require', 'npm', 'package',
-      // Типи файлів та розширення
-      '.js', '.ts', '.vue', '.html', '.css', '.json', '.md',
-      // Команди та інструменти
-      'install', 'build', 'deploy', 'test', 'run', 'start', 'dev',
-      'git', 'github', 'repository', 'commit', 'branch', 'merge'
-    ];
-
-    // Нетехнічні ключові слова (стоп-слова)
-    const nonTechnicalKeywords = [
-      // Їжа та готування
-      'борщ', 'суп', 'каша', 'хліб', 'м\'яso', 'риба', 'овочі', 'фрукти',
-      'готувати', 'варити', 'смажити', 'пекти', 'їжа', 'рецепт', 'кухня',
-      'ресторан', 'кафе', 'страва', 'обід', 'вечеря', 'сніданок',
-      // Побут
-      'прибирання', 'миття', 'прання', 'покупки', 'магазин', 'дім', 'квартира',
-      'ремонт', 'меблі', 'одяг', 'взуття', 'косметика', 'гігієна',
-      // Здоров\'я
-      'лікар', 'хвороба', 'ліки', 'лікування', 'симптоми', 'біль', 'температура',
-      'грип', 'застуда', 'вітаміни', 'дієта', 'спорт', 'фітнес',
-      // Розваги та хобі
-      'фільм', 'музика', 'книга', 'гра', 'спорт', 'подорож', 'відпочинок',
-      'телевізор', 'кіно', 'театр', 'концерт', 'виставка', 'музей',
-      // Природа та погода
-      'погода', 'дощ', 'сонце', 'сніг', 'вітер', 'тепло', 'холодно',
-      'весна', 'літо', 'осінь', 'зима', 'ліс', 'море', 'гори', 'річка',
-      // Особисте життя
-      'сім\'я', 'друзі', 'любов', 'відносини', 'весілля', 'дитина', 'школа',
-      'університет', 'робота', 'зарплата', 'відпустка', 'пенсія'
-    ];
-
-    // Перевіряємо на наявність нетехнічних слів
-    const hasNonTechnicalWords = nonTechnicalKeywords.some(keyword => 
-      lowerQuery.includes(keyword)
-    );
-
-    if (hasNonTechnicalWords) {
-      return {
-        isTechnical: false,
-        warning: '🤖 Цей сервіс працює тільки з технічними запитами про програмування. Ваш запит здається нетехнічним.',
-        suggestions: [
-          'Задайте питання про Vue.js, Node.js, TypeScript або GrapesJS',
-          'Приклади: "як створити компонент у Vue", "async/await в Node.js", "типи в TypeScript"',
-          'Якщо у вас технічна проблема, опишіть її детальніше'
-        ]
-      };
-    }
-
-    // Перевіряємо на наявність технічних слів
-    const technicalWordsCount = technicalKeywords.filter(keyword => 
-      lowerQuery.includes(keyword)
-    ).length;
-
-    // Якщо є хоча б одне технічне слово, вважаємо запит технічним
-    if (technicalWordsCount > 0) {
-      return { isTechnical: true };
-    }
-
-    // Перевіряємо на загальні патерни технічних запитів
-    const technicalPatterns = [
-      /how\s+to\s+.*(code|program|develop|build|create|implement)/i,
-      /як\s+.*(написати|створити|зробити|реалізувати|налаштувати).*код/i,
-      /error.*in.*(vue|node|typescript|javascript)/i,
-      /помилка.*в.*(vue|node|typescript|javascript)/i,
-      /(функція|метод|клас|компонент)/i,
-      /(function|method|class|component)/i
-    ];
-
-    const hasMatches = technicalPatterns.some(pattern => pattern.test(lowerQuery));
-    
-    if (hasMatches) {
-      return { isTechnical: true };
-    }
-
-    // Якщо запит не містить очевидно нетехнічних слів, але й немає технічних,
-    // даємо шанс і попереджаємо
-    return {
-      isTechnical: false,
-      warning: '⚠️  Не впевнений, що це технічний запит. Цей сервіс спеціалізується на програмуванні.',
-      suggestions: [
-        'Якщо ваш запит стосується програмування, додайте технічні терміни',
-        'Вкажіть технологію: Vue.js, Node.js, TypeScript, GrapesJS',
-        'Приклади: "vue router", "node express server", "typescript interfaces"'
-      ]
-    };
+    // Тепер всі запити вважаються технічними - нехай AI модель вирішує
+    return { isTechnical: true };
   }
 
   // Оновлені методи з новим типом результату

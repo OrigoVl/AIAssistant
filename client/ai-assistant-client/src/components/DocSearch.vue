@@ -845,7 +845,6 @@ watch([selectedTechnology, searchType], () => {
 
 .doc-result-card:hover {
   box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
 }
 
 .doc-header {
